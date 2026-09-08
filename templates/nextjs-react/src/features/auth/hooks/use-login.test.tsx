@@ -8,7 +8,9 @@ function wrapper({ children }: { children: React.ReactNode }) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
 }
 
 describe('useLogin', () => {
@@ -22,9 +24,14 @@ describe('useLogin', () => {
       'fetch',
       vi.fn(
         async () =>
-          new Response(JSON.stringify({ user: { id: '1', email: 'a@b.com', name: 'Ada' } }), {
-            status: 200,
-          })
+          new Response(
+            JSON.stringify({
+              user: { id: '1', email: 'a@b.com', name: 'Ada' },
+            }),
+            {
+              status: 200,
+            }
+          )
       )
     );
 
@@ -32,7 +39,9 @@ describe('useLogin', () => {
 
     result.current.mutate({ email: 'a@b.com', password: 'secret' });
 
-    await waitFor(() => expect(useAuthStore.getState().isAuthenticated).toBe(true));
+    await waitFor(() =>
+      expect(useAuthStore.getState().isAuthenticated).toBe(true)
+    );
     expect(useAuthStore.getState().user?.email).toBe('a@b.com');
   });
 });

@@ -18,7 +18,10 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-3">
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full max-w-sm flex-col gap-3"
+      >
         <input
           type="email"
           value={email}
