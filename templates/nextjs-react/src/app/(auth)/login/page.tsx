@@ -36,7 +36,9 @@ export default function LoginPage() {
           placeholder="Password"
           className="rounded-md border border-input px-3 py-2"
         />
-        {error ? <p className="text-sm text-red-500">{error.message}</p> : null}
+        {error ? (
+          <p className="text-sm font-medium text-foreground">{error.message}</p>
+        ) : null}
         <Button type="submit" disabled={isPending}>
           {isPending ? 'Signing in…' : 'Sign in'}
         </Button>
