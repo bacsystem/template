@@ -4,3 +4,6 @@ out/
 .env
 .env.local
 *.log
+next-env.d.ts
+*.tsbuildinfo
+pnpm-lock.yaml

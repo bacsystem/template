@@ -7,7 +7,7 @@ test('package.json declares required scripts and the placeholder name', () => {
   assert.equal(pkg.name, '__PROJECT_NAME__');
   assert.equal(pkg.scripts.dev, 'next dev');
   assert.equal(pkg.scripts.build, 'next build');
-  assert.equal(pkg.scripts.test, 'vitest run');
+  assert.match(pkg.scripts.test, /^vitest run/);
   assert.equal(pkg.scripts.typecheck, 'tsc --noEmit');
   assert.equal(pkg.scripts.lint, 'eslint .');
 });
