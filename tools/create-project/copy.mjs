@@ -1,14 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
-import { walkFiles } from './walk.mjs';
-
-const DEFAULT_EXCLUDES = new Set([
-  'node_modules',
-  '.git',
-  'pnpm-lock.yaml',
-  'package-lock.json',
-  'yarn.lock',
-]);
+import { DEFAULT_EXCLUDES, walkFiles } from './walk.mjs';
 
 export async function copyTemplate(srcDir, destDir, { exclude = DEFAULT_EXCLUDES } = {}) {
   if (await pathHasEntries(destDir)) {

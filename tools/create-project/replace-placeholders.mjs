@@ -6,7 +6,13 @@ function escapeRegExp(value) {
 }
 
 export async function replacePlaceholders(destDir, replacements) {
-  const pattern = new RegExp(Object.keys(replacements).map(escapeRegExp).join('|'), 'g');
+  const tokens = Object.keys(replacements);
+
+  // An empty alternation compiles to //g, which matches at every position and
+  // would splice `undefined` between every character of every file.
+  if (tokens.length === 0) return;
+
+  const pattern = new RegExp(tokens.map(escapeRegExp).join('|'), 'g');
 
   await walkFiles(destDir, async (entryPath) => {
     const content = await fs.readFile(entryPath, 'utf8');

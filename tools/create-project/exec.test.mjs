@@ -39,3 +39,24 @@ test('createExec rejects a shell command whose args would be split by the shell'
     /cannot be passed through a shell/
   );
 });
+
+test('createExec rejects shell metacharacters, not just whitespace', async () => {
+  const exec = createExec({ platform: 'win32', run: async () => {} });
+
+  for (const arg of ['a&b', 'a|b', 'a;b', 'a>b', 'a<b', 'a$b', 'a`b', 'a(b', 'a)b']) {
+    await assert.rejects(
+      exec('pnpm', ['run', arg], { cwd: '/dest' }),
+      /cannot be passed through a shell/,
+      `expected ${arg} to be rejected`
+    );
+  }
+});
+
+test('createExec allows plain args through the shell', async () => {
+  const calls = [];
+  const exec = createExec({ platform: 'win32', run: async (c, a) => calls.push(a) });
+
+  await exec('pnpm', ['install', '--frozen-lockfile'], { cwd: '/dest' });
+
+  assert.deepEqual(calls[0], ['install', '--frozen-lockfile']);
+});

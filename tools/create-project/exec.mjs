@@ -10,6 +10,10 @@ const execFileAsync = promisify(execFile);
 // five separate arguments and fails on the extra pathspecs.
 const SHELL_SHIMS = new Set(['pnpm', 'npm', 'yarn', 'npx']);
 
+// Whitespace splits an argument in two; the rest are metacharacters both
+// cmd.exe and POSIX shells act on (redirection, chaining, substitution).
+const SHELL_UNSAFE = /[\s&|;<>`$()^"'*?[\]{}!~#]/;
+
 export function needsShell(command, platform = process.platform) {
   return platform === 'win32' && SHELL_SHIMS.has(command);
 }
@@ -18,14 +22,15 @@ export function createExec({ platform = process.platform, run = execFileAsync } 
   return async (command, args, options = {}) => {
     const shell = needsShell(command, platform);
 
-    // Fail loudly rather than let the shell silently split an argument, which
-    // is the failure mode this module exists to prevent.
+    // Fail loudly rather than let the shell silently split or reinterpret an
+    // argument, which is the failure mode this module exists to prevent.
     if (shell) {
-      const unsafe = args.find((arg) => /\s/.test(arg));
+      const unsafe = args.find((arg) => SHELL_UNSAFE.test(arg));
       if (unsafe) {
         throw new Error(
           `Argument "${unsafe}" cannot be passed through a shell unescaped. ` +
-            `Pass a single-word argument, or run this command without a shell.`
+            `Shell-invoked commands accept only plain arguments — no whitespace ` +
+            `and no shell metacharacters.`
         );
       }
     }
