@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import prompts from 'prompts';
@@ -34,18 +34,26 @@ async function main() {
     .filter((entry) => entry.isDirectory())
     .map((entry) => ({ title: entry.name, value: entry.name }));
 
-  const answers = await prompts([
-    { type: 'select', name: 'template', message: 'Elegí una plantilla', choices: templateChoices },
-    { type: 'text', name: 'projectName', message: 'Nombre del proyecto' },
-    { type: 'text', name: 'themePrimary', message: 'Color primario del tema (hex)' },
-    { type: 'text', name: 'apiBaseUrl', message: 'URL base de la API externa' },
+  const answers = await prompts(
+    [
+      { type: 'select', name: 'template', message: 'Elegí una plantilla', choices: templateChoices },
+      { type: 'text', name: 'projectName', message: 'Nombre del proyecto' },
+      { type: 'text', name: 'themePrimary', message: 'Color primario del tema (hex)' },
+      { type: 'text', name: 'apiBaseUrl', message: 'URL base de la API externa' },
+      {
+        type: 'text',
+        name: 'destination',
+        message: 'Ruta destino',
+        initial: (prev, values) => path.join('..', values.projectName),
+      },
+    ],
     {
-      type: 'text',
-      name: 'destination',
-      message: 'Ruta destino',
-      initial: (prev, values) => path.join('..', values.projectName),
-    },
-  ]);
+      onCancel: () => {
+        console.log('\nCancelado.');
+        process.exit(1);
+      },
+    }
+  );
 
   const destDir = await runCreateProject(answers, {
     copyTemplate,
@@ -59,6 +67,6 @@ async function main() {
   console.log(`\nPróximos pasos:\n  cd ${path.relative(process.cwd(), destDir)}\n  pnpm dev`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   main();
 }
