@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { walkFiles } from './walk.mjs';
 
 const DEFAULT_EXCLUDES = new Set([
   'node_modules',
@@ -13,7 +14,16 @@ export async function copyTemplate(srcDir, destDir, { exclude = DEFAULT_EXCLUDES
   if (await pathHasEntries(destDir)) {
     throw new Error(`Destination already exists and is not empty: ${destDir}`);
   }
-  await copyRecursive(srcDir, destDir, exclude);
+  await fs.mkdir(destDir, { recursive: true });
+  await walkFiles(
+    srcDir,
+    async (srcPath) => {
+      const destPath = path.join(destDir, path.relative(srcDir, srcPath));
+      await fs.mkdir(path.dirname(destPath), { recursive: true });
+      await fs.copyFile(srcPath, destPath);
+    },
+    { exclude }
+  );
 }
 
 async function pathHasEntries(dir) {
@@ -23,20 +33,5 @@ async function pathHasEntries(dir) {
   } catch (error) {
     if (error.code === 'ENOENT') return false;
     throw error;
-  }
-}
-
-async function copyRecursive(srcDir, destDir, exclude) {
-  await fs.mkdir(destDir, { recursive: true });
-  const entries = await fs.readdir(srcDir, { withFileTypes: true });
-  for (const entry of entries) {
-    if (exclude.has(entry.name)) continue;
-    const srcPath = path.join(srcDir, entry.name);
-    const destPath = path.join(destDir, entry.name);
-    if (entry.isDirectory()) {
-      await copyRecursive(srcPath, destPath, exclude);
-    } else {
-      await fs.copyFile(srcPath, destPath);
-    }
   }
 }

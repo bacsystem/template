@@ -23,3 +23,18 @@ test('replacePlaceholders rewrites tokens in nested text files', async () => {
 
   await fs.rm(root, { recursive: true, force: true });
 });
+
+test('replacePlaceholders does not re-substitute a value that matches another token', async () => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'replace-test-'));
+  await fs.writeFile(path.join(root, 'file.txt'), 'name=__PROJECT_NAME__');
+
+  await replacePlaceholders(root, {
+    __PROJECT_NAME__: '__API_BASE_URL__',
+    __API_BASE_URL__: 'https://api.acme.com',
+  });
+
+  const content = await fs.readFile(path.join(root, 'file.txt'), 'utf8');
+  assert.equal(content, 'name=__API_BASE_URL__');
+
+  await fs.rm(root, { recursive: true, force: true });
+});

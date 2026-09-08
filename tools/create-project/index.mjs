@@ -34,10 +34,20 @@ async function main() {
     .filter((entry) => entry.isDirectory())
     .map((entry) => ({ title: entry.name, value: entry.name }));
 
+  if (templateChoices.length === 0) {
+    console.error('No hay plantillas en templates/. Agregá una antes de correr este CLI.');
+    process.exit(1);
+  }
+
   const answers = await prompts(
     [
       { type: 'select', name: 'template', message: 'Elegí una plantilla', choices: templateChoices },
-      { type: 'text', name: 'projectName', message: 'Nombre del proyecto' },
+      {
+        type: 'text',
+        name: 'projectName',
+        message: 'Nombre del proyecto',
+        validate: (value) => (value.trim() ? true : 'El nombre del proyecto no puede estar vacío'),
+      },
       { type: 'text', name: 'themePrimary', message: 'Color primario del tema (hex)' },
       { type: 'text', name: 'apiBaseUrl', message: 'URL base de la API externa' },
       {
@@ -59,7 +69,7 @@ async function main() {
     copyTemplate,
     replacePlaceholders,
     runSetup,
-    exec: (cmd, args, options) => execFileAsync(cmd, args, options),
+    exec: (cmd, args, options) => execFileAsync(cmd, args, { ...options, shell: true }),
     templatesDir: TEMPLATES_DIR,
   });
 
