@@ -14,13 +14,16 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  });
+  // Normalize through the Headers constructor rather than object-spreading
+  // options.headers directly: a caller-supplied Headers instance or
+  // [string, string][] tuple list (both valid HeadersInit forms) has no own
+  // enumerable properties, so spreading it silently drops every entry.
+  const headers = new Headers(options.headers);
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  const response = await fetch(path, { ...options, headers });
 
   if (response.status === 401 && typeof window !== 'undefined') {
     window.location.assign('/login');

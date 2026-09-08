@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
-
-const CSRF_COOKIE = 'csrf_token';
+import { CSRF_COOKIE } from '@/shared/lib/cookies';
 
 export async function GET() {
   const token = randomUUID();

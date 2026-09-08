@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { AUTH_COOKIE } from '@/shared/lib/cookies';
 
-const AUTH_COOKIE = 'session_token';
 const PROTECTED_PATHS = ['/dashboard'];
 
 export function middleware(request: NextRequest) {

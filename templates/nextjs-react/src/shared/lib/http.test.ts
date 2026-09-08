@@ -36,4 +36,22 @@ describe('apiFetch', () => {
       message: 'Not found',
     });
   });
+
+  it('preserves caller headers passed as a Headers instance', async () => {
+    let receivedHeaders: Headers | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url, init) => {
+        receivedHeaders = new Headers(init?.headers);
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      })
+    );
+
+    await apiFetch('/api/example', {
+      headers: new Headers({ Authorization: 'Bearer jwt-token' }),
+    });
+
+    expect(receivedHeaders?.get('Authorization')).toBe('Bearer jwt-token');
+    expect(receivedHeaders?.get('Content-Type')).toBe('application/json');
+  });
 });

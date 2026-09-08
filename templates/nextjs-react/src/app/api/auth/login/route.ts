@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ApiError, apiFetch } from '@/shared/lib/http';
 import { isValidCsrfToken } from '@/shared/lib/csrf';
-
-const AUTH_COOKIE = 'session_token';
+import { AUTH_COOKIE } from '@/shared/lib/cookies';
 
 export async function POST(request: NextRequest) {
   if (!isValidCsrfToken(request)) {

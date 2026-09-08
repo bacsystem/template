@@ -1,7 +1,5 @@
 import { NextRequest } from 'next/server';
-
-const CSRF_COOKIE = 'csrf_token';
-const CSRF_HEADER = 'x-csrf-token';
+import { CSRF_COOKIE, CSRF_HEADER } from '@/shared/lib/cookies';
 
 export function isValidCsrfToken(request: NextRequest): boolean {
   const cookieToken = request.cookies.get(CSRF_COOKIE)?.value;
