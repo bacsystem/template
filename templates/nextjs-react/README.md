@@ -14,6 +14,7 @@ Generado a partir de la plantilla `nextjs-react` del monorepo `template`.
 ## Build & Docker
 
     pnpm build
+    cp .env.example .env   # fill in API_BASE_URL first — docker-compose reads this file
     docker compose up --build
 
 `nginx.conf` as shipped terminates plain HTTP only. The auth cookies are set
