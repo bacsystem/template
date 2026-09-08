@@ -30,7 +30,13 @@ export function quoteForShell(arg, platform = process.platform) {
           `variable expansion that quoting does not disarm.`
       );
     }
-    return `"${arg.replace(/"/g, '""')}"`;
+
+    // A backslash is only special when it precedes a quote, so every run that
+    // does — including the run at the end, which meets the closing quote — has
+    // to be doubled. Skipping the trailing run lets `C:\path\` escape its own
+    // closing quote and swallow whatever argument follows.
+    const escaped = arg.replace(/(\\*)"/g, '$1$1""').replace(/(\\+)$/, '$1$1');
+    return `"${escaped}"`;
   }
 
   // POSIX single quotes are fully literal; only ' itself needs breaking out.

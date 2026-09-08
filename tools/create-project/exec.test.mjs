@@ -17,6 +17,16 @@ test('quoteForShell wraps cmd.exe arguments so metacharacters lose their meaning
   assert.equal(quoteForShell('say "hi"', 'win32'), '"say ""hi"""');
 });
 
+test('quoteForShell doubles the backslashes that meet a quote, so they stay literal', () => {
+  // Untouched: a backslash is only special next to a quote.
+  assert.equal(quoteForShell('C:\\some\\path', 'win32'), '"C:\\some\\path"');
+  // Trailing run meets the closing quote, so it doubles.
+  assert.equal(quoteForShell('C:\\some\\path\\', 'win32'), '"C:\\some\\path\\\\"');
+  assert.equal(quoteForShell('C:\\dir\\\\', 'win32'), '"C:\\dir\\\\\\\\"');
+  // Run before an embedded quote doubles, and the quote itself is escaped.
+  assert.equal(quoteForShell('a\\"b', 'win32'), '"a\\\\""b"');
+});
+
 test('quoteForShell single-quotes POSIX arguments, escaping embedded quotes', () => {
   assert.equal(quoteForShell('install', 'linux'), "'install'");
   assert.equal(quoteForShell('a&b', 'linux'), "'a&b'");

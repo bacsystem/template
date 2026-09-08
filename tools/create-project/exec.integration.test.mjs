@@ -16,14 +16,30 @@ const COMMIT_MESSAGE = 'chore: scaffold project from template';
 
 test('quoteForShell arguments survive a real shell round-trip', async () => {
   // Unit tests assert the quoted string; only a real shell proves the quoting
-  // is the one cmd.exe/sh actually accept.
-  const tricky = ['pkg@^1.2.3', 'pkg@~1.0.0', './packages/*', 'a&b', 'two words'];
-  const script = 'console.log(process.argv.slice(1).join("|"))';
+  // is the one cmd.exe/sh actually accept. The list deliberately includes the
+  // Windows quoting edges — a trailing backslash escapes the closing quote,
+  // and an embedded quote needs escaping — not just metacharacters that a
+  // naive wrap already survives.
+  const tricky = [
+    'pkg@^1.2.3',
+    'pkg@~1.0.0',
+    './packages/*',
+    'a&b',
+    'two words',
+    'C:\\some\\path\\',
+    'C:\\dir\\\\',
+    'say "hi"',
+    'a\\"b',
+    'a^b',
+    'a!b',
+    '',
+  ];
+  const script = 'console.log(JSON.stringify(process.argv.slice(1)))';
 
   const quoted = [script, ...tricky].map((arg) => quoteForShell(arg));
   const { stdout } = await execFileAsync('node', ['-e', ...quoted], { shell: true });
 
-  assert.deepEqual(stdout.trim().split('|'), tricky);
+  assert.deepEqual(JSON.parse(stdout.trim()), tricky);
 });
 
 test('createExec preserves a multi-word git commit message end to end', async (t) => {
