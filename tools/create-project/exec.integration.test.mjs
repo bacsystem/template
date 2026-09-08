@@ -4,15 +4,30 @@
 // string. This file is the only guard against that class of regression.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
 import { promises as fs } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
-import { createExec } from './exec.mjs';
+import { promisify } from 'node:util';
+import { createExec, quoteForShell } from './exec.mjs';
+import { makeTempDir } from './testing/temp-dir.mjs';
 
+const execFileAsync = promisify(execFile);
 const COMMIT_MESSAGE = 'chore: scaffold project from template';
 
-test('createExec preserves a multi-word git commit message end to end', async () => {
-  const repo = await fs.mkdtemp(path.join(os.tmpdir(), 'exec-integration-'));
+test('quoteForShell arguments survive a real shell round-trip', async () => {
+  // Unit tests assert the quoted string; only a real shell proves the quoting
+  // is the one cmd.exe/sh actually accept.
+  const tricky = ['pkg@^1.2.3', 'pkg@~1.0.0', './packages/*', 'a&b', 'two words'];
+  const script = 'console.log(process.argv.slice(1).join("|"))';
+
+  const quoted = [script, ...tricky].map((arg) => quoteForShell(arg));
+  const { stdout } = await execFileAsync('node', ['-e', ...quoted], { shell: true });
+
+  assert.deepEqual(stdout.trim().split('|'), tricky);
+});
+
+test('createExec preserves a multi-word git commit message end to end', async (t) => {
+  const repo = await makeTempDir(t, 'exec-integration-');
   const exec = createExec();
   const opts = { cwd: repo };
 
@@ -26,16 +41,12 @@ test('createExec preserves a multi-word git commit message end to end', async ()
   const { stdout } = await exec('git', ['log', '-1', '--pretty=%s'], opts);
 
   assert.equal(stdout.trim(), COMMIT_MESSAGE);
-
-  await fs.rm(repo, { recursive: true, force: true });
 });
 
-test('createExec surfaces a real command failure as a rejection', async () => {
-  const repo = await fs.mkdtemp(path.join(os.tmpdir(), 'exec-integration-'));
+test('createExec surfaces a real command failure as a rejection', async (t) => {
+  const repo = await makeTempDir(t, 'exec-integration-');
   const exec = createExec();
 
   // No repository here, so git must fail rather than resolve silently.
   await assert.rejects(exec('git', ['log'], { cwd: repo }));
-
-  await fs.rm(repo, { recursive: true, force: true });
 });

@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { promises as fs } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { replacePlaceholders } from './replace-placeholders.mjs';
+import { makeTempDir } from './testing/temp-dir.mjs';
 
-test('replacePlaceholders rewrites tokens in nested text files', async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'replace-test-'));
+test('replacePlaceholders rewrites tokens in nested text files', async (t) => {
+  const root = await makeTempDir(t, 'replace-test-');
   await fs.mkdir(path.join(root, 'nested'), { recursive: true });
   await fs.writeFile(
     path.join(root, 'nested', 'config.txt'),
@@ -20,12 +20,10 @@ test('replacePlaceholders rewrites tokens in nested text files', async () => {
 
   const content = await fs.readFile(path.join(root, 'nested', 'config.txt'), 'utf8');
   assert.equal(content, 'name=acme-app\nurl=https://api.acme.com');
-
-  await fs.rm(root, { recursive: true, force: true });
 });
 
-test('replacePlaceholders does not re-substitute a value that matches another token', async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'replace-test-'));
+test('replacePlaceholders does not re-substitute a value that matches another token', async (t) => {
+  const root = await makeTempDir(t, 'replace-test-');
   await fs.writeFile(path.join(root, 'file.txt'), 'name=__PROJECT_NAME__');
 
   await replacePlaceholders(root, {
@@ -35,24 +33,28 @@ test('replacePlaceholders does not re-substitute a value that matches another to
 
   const content = await fs.readFile(path.join(root, 'file.txt'), 'utf8');
   assert.equal(content, 'name=__API_BASE_URL__');
-
-  await fs.rm(root, { recursive: true, force: true });
 });
 
-test('replacePlaceholders leaves files untouched when there is nothing to replace', async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'replace-test-'));
+test('replacePlaceholders leaves files untouched when there is nothing to replace', async (t) => {
+  const root = await makeTempDir(t, 'replace-test-');
   await fs.writeFile(path.join(root, 'file.txt'), 'hello');
 
   await replacePlaceholders(root, {});
 
-  const content = await fs.readFile(path.join(root, 'file.txt'), 'utf8');
-  assert.equal(content, 'hello');
-
-  await fs.rm(root, { recursive: true, force: true });
+  assert.equal(await fs.readFile(path.join(root, 'file.txt'), 'utf8'), 'hello');
 });
 
-test('replacePlaceholders does not descend into .git or node_modules', async () => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'replace-test-'));
+test('replacePlaceholders rewrites a lockfile, which is a copy-time exclusion only', async (t) => {
+  const root = await makeTempDir(t, 'replace-test-');
+  await fs.writeFile(path.join(root, 'pnpm-lock.yaml'), 'name: __PROJECT_NAME__');
+
+  await replacePlaceholders(root, { __PROJECT_NAME__: 'acme-app' });
+
+  assert.equal(await fs.readFile(path.join(root, 'pnpm-lock.yaml'), 'utf8'), 'name: acme-app');
+});
+
+test('replacePlaceholders does not descend into .git or node_modules', async (t) => {
+  const root = await makeTempDir(t, 'replace-test-');
   await fs.mkdir(path.join(root, '.git'), { recursive: true });
   await fs.mkdir(path.join(root, 'node_modules'), { recursive: true });
   await fs.writeFile(path.join(root, '.git', 'COMMIT_EDITMSG'), '__PROJECT_NAME__');
@@ -70,6 +72,4 @@ test('replacePlaceholders does not descend into .git or node_modules', async () 
     await fs.readFile(path.join(root, 'node_modules', 'dep.js'), 'utf8'),
     '__PROJECT_NAME__'
   );
-
-  await fs.rm(root, { recursive: true, force: true });
 });

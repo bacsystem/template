@@ -10,31 +10,38 @@ const execFileAsync = promisify(execFile);
 // five separate arguments and fails on the extra pathspecs.
 const SHELL_SHIMS = new Set(['pnpm', 'npm', 'yarn', 'npx']);
 
-// Whitespace splits an argument in two; the rest are metacharacters both
-// cmd.exe and POSIX shells act on (redirection, chaining, substitution).
-const SHELL_UNSAFE = /[\s&|;<>`$()^"'*?[\]{}!~#]/;
-
 export function needsShell(command, platform = process.platform) {
   return platform === 'win32' && SHELL_SHIMS.has(command);
+}
+
+// Node concatenates args with a bare space under `shell: true`, so anything
+// heading for a shell is quoted here first. Quoting rather than rejecting
+// matters: npm-ecosystem arguments legitimately contain shell metacharacters
+// (`pkg@^1.2.3`, `--filter=./packages/*`), and a guard that refuses them
+// invites the next contributor to weaken it instead.
+export function quoteForShell(arg, platform = process.platform) {
+  if (platform === 'win32') {
+    // Inside double quotes cmd.exe stops acting on &, |, <, >, ^ and friends,
+    // and "" is its escape for a literal quote. %VAR% still expands there and
+    // has no reliable escape, so it stays refused.
+    if (arg.includes('%')) {
+      throw new Error(
+        `Argument "${arg}" cannot be passed through cmd.exe: % triggers ` +
+          `variable expansion that quoting does not disarm.`
+      );
+    }
+    return `"${arg.replace(/"/g, '""')}"`;
+  }
+
+  // POSIX single quotes are fully literal; only ' itself needs breaking out.
+  return `'${arg.replace(/'/g, `'\\''`)}'`;
 }
 
 export function createExec({ platform = process.platform, run = execFileAsync } = {}) {
   return async (command, args, options = {}) => {
     const shell = needsShell(command, platform);
+    const finalArgs = shell ? args.map((arg) => quoteForShell(arg, platform)) : args;
 
-    // Fail loudly rather than let the shell silently split or reinterpret an
-    // argument, which is the failure mode this module exists to prevent.
-    if (shell) {
-      const unsafe = args.find((arg) => SHELL_UNSAFE.test(arg));
-      if (unsafe) {
-        throw new Error(
-          `Argument "${unsafe}" cannot be passed through a shell unescaped. ` +
-            `Shell-invoked commands accept only plain arguments — no whitespace ` +
-            `and no shell metacharacters.`
-        );
-      }
-    }
-
-    return run(command, args, { ...options, shell });
+    return run(command, finalArgs, { ...options, shell });
   };
 }
