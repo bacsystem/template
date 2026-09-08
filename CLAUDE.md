@@ -11,6 +11,9 @@ propias de cada herramienta) ya aplican por herencia.
   entre plantillas, sin `node_modules`/lockfile compartido.
 - Toda plantilla nueva debe incluir: `README.md` con setup, `Dockerfile`
   + CI baseline, TypeScript en modo estricto.
+- Toda plantilla nueva debe incluir un `.gitignore` que excluya
+  `node_modules/`: el CLI corre `pnpm install` antes de `git add .`, así
+  que sin él las dependencias entran al commit inicial.
 - Toda plantilla nueva debe usar placeholders simples (`__NOMBRE__`)
   compatibles con `tools/create-project`.
 - Componentes/primitivos compartidos deben ser genéricos, configurables

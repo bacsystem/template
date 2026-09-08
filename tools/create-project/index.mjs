@@ -1,31 +1,29 @@
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
 import prompts from 'prompts';
 import { copyTemplate } from './copy.mjs';
 import { replacePlaceholders } from './replace-placeholders.mjs';
 import { runSetup } from './setup.mjs';
 import { buildPlaceholderMap } from './build-placeholder-map.mjs';
+import { createExec } from './exec.mjs';
 
-const execFileAsync = promisify(execFile);
 const CREATE_PROJECT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.dirname(path.dirname(CREATE_PROJECT_DIR));
 const TEMPLATES_DIR = path.join(REPO_ROOT, 'templates');
 
-export async function runCreateProject(
-  answers,
-  { copyTemplate, replacePlaceholders, runSetup, exec, templatesDir }
-) {
-  const srcDir = path.join(templatesDir, answers.template);
+// `deps` is deliberately not destructured: destructuring would shadow the
+// module-level imports of the same name, so dropping a dependency would
+// silently fall back to the real implementation instead of failing a test.
+export async function runCreateProject(answers, deps) {
+  const srcDir = path.join(deps.templatesDir, answers.template);
   const destDir = path.resolve(answers.destination);
 
-  await copyTemplate(srcDir, destDir);
-  await replacePlaceholders(destDir, buildPlaceholderMap(answers));
-  await runSetup(destDir, { exec });
+  await deps.copyTemplate(srcDir, destDir);
+  await deps.replacePlaceholders(destDir, deps.buildPlaceholderMap(answers));
+  const { committed } = await deps.runSetup(destDir, { exec: deps.exec });
 
-  return destDir;
+  return { destDir, committed };
 }
 
 async function main() {
@@ -65,11 +63,12 @@ async function main() {
     }
   );
 
-  const destDir = await runCreateProject(answers, {
+  const { destDir } = await runCreateProject(answers, {
     copyTemplate,
     replacePlaceholders,
     runSetup,
-    exec: (cmd, args, options) => execFileAsync(cmd, args, { ...options, shell: true }),
+    buildPlaceholderMap,
+    exec: createExec(),
     templatesDir: TEMPLATES_DIR,
   });
 
@@ -77,6 +76,9 @@ async function main() {
   console.log(`\nPróximos pasos:\n  cd ${path.relative(process.cwd(), destDir)}\n  pnpm dev`);
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// argv[1] is undefined when this module is imported from a context with no
+// entry script (`node -e`, the REPL), and pathToFileURL throws on undefined.
+const entryScript = process.argv[1];
+if (entryScript && import.meta.url === pathToFileURL(entryScript).href) {
   main();
 }

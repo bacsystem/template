@@ -8,7 +8,11 @@ test('runCreateProject copies, replaces placeholders, and runs setup in order', 
   const deps = {
     copyTemplate: async (src, dest) => calls.push({ step: 'copy', src, dest }),
     replacePlaceholders: async (dest, map) => calls.push({ step: 'replace', dest, map }),
-    runSetup: async (dest) => calls.push({ step: 'setup', dest }),
+    runSetup: async (dest) => {
+      calls.push({ step: 'setup', dest });
+      return { committed: true };
+    },
+    buildPlaceholderMap: (answers) => ({ __PROJECT_NAME__: answers.projectName }),
     exec: async () => {},
     templatesDir: path.join('repo', 'templates'),
   };
@@ -20,14 +24,30 @@ test('runCreateProject copies, replaces placeholders, and runs setup in order', 
     destination: path.join('dest', 'acme-app'),
   };
 
-  const destDir = await runCreateProject(answers, deps);
+  const result = await runCreateProject(answers, deps);
 
-  assert.equal(destDir, path.resolve(answers.destination));
+  assert.equal(result.destDir, path.resolve(answers.destination));
+  assert.equal(result.committed, true);
   assert.deepEqual(calls.map((c) => c.step), ['copy', 'replace', 'setup']);
   assert.equal(calls[0].src, path.join('repo', 'templates', 'nextjs-react'));
-  assert.deepEqual(calls[1].map, {
-    __PROJECT_NAME__: 'acme-app',
-    __THEME_PRIMARY__: '#ff0000',
-    __API_BASE_URL__: 'https://api.acme.com',
-  });
+  assert.deepEqual(calls[1].map, { __PROJECT_NAME__: 'acme-app' });
+});
+
+test('runCreateProject uses the injected placeholder map builder, not the module import', async () => {
+  let builderCalled = false;
+  const deps = {
+    copyTemplate: async () => {},
+    replacePlaceholders: async () => {},
+    runSetup: async () => ({ committed: true }),
+    buildPlaceholderMap: () => {
+      builderCalled = true;
+      return {};
+    },
+    exec: async () => {},
+    templatesDir: 'templates',
+  };
+
+  await runCreateProject({ template: 't', destination: 'dest' }, deps);
+
+  assert.ok(builderCalled);
 });
