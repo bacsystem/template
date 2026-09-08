@@ -80,5 +80,12 @@ async function main() {
 // entry script (`node -e`, the REPL), and pathToFileURL throws on undefined.
 const entryScript = process.argv[1];
 if (entryScript && import.meta.url === pathToFileURL(entryScript).href) {
-  main();
+  // Expected failures here are the user's own — an existing destination, a
+  // missing template. Printing a stack trace for those buries the message the
+  // throw site was written to give, so the trace stays behind DEBUG.
+  main().catch((error) => {
+    console.error(`\n${error.message}`);
+    if (process.env.DEBUG) console.error(error);
+    process.exit(1);
+  });
 }
