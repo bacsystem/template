@@ -1,0 +1,13 @@
+{
+  "name": "template-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "create:project": "node tools/create-project/index.mjs",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "prompts": "^2.4.2"
+  }
+}
