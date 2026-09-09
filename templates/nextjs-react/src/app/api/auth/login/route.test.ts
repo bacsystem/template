@@ -66,4 +66,12 @@ describe('POST /api/auth/login', () => {
     expect(response.status).toBe(400);
     expect(body.message).toBe('Invalid request body');
   });
+
+  it('returns a 400 when email or password are not strings', async () => {
+    const response = await POST(requestWithCsrf({ email: { nested: true }, password: 123 }));
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe('Invalid request body');
+  });
 });

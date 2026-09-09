@@ -9,11 +9,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Invalid CSRF token' }, { status: 403 });
   }
 
-  let email: unknown;
-  let password: unknown;
+  let body: unknown;
   try {
-    ({ email, password } = await request.json());
+    body = await request.json();
   } catch {
+    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+  }
+
+  const { email, password } = (body ?? {}) as { email?: unknown; password?: unknown };
+  if (typeof email !== 'string' || typeof password !== 'string') {
     return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
   }
 
