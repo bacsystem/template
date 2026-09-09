@@ -52,4 +52,18 @@ describe('POST /api/auth/login', () => {
     expect(response.status).toBe(401);
     expect(body.message).toBe('Invalid credentials');
   });
+
+  it('returns a 400 instead of throwing when the body is not valid JSON', async () => {
+    const request = new NextRequest('http://localhost/api/auth/login', {
+      method: 'POST',
+      headers: { cookie: 'csrf_token=valid-token', 'x-csrf-token': 'valid-token' },
+      body: 'not-json',
+    });
+
+    const response = await POST(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.message).toBe('Invalid request body');
+  });
 });

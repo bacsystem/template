@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApiError, apiFetch } from '@/shared/lib/http';
+import { apiFetch } from '@/shared/lib/http';
+import { handleApiError } from '@/shared/lib/api-error-response';
 import { AUTH_COOKIE } from '@/shared/lib/cookies';
 import type { DashboardSummary } from '@/features/dashboard/api';
 
@@ -16,9 +17,6 @@ export async function GET(request: NextRequest) {
     );
     return NextResponse.json(summary);
   } catch (error) {
-    if (error instanceof ApiError) {
-      return NextResponse.json({ message: error.message }, { status: error.status });
-    }
-    return NextResponse.json({ message: 'Unexpected error' }, { status: 500 });
+    return handleApiError(error);
   }
 }

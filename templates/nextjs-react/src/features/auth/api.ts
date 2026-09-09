@@ -1,3 +1,5 @@
+import { apiFetch } from '@/shared/lib/http';
+
 export interface LoginPayload {
   email: string;
   password: string;
@@ -12,22 +14,14 @@ export interface LoginResponse {
 }
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
-  const csrfResponse = await fetch('/api/auth/csrf');
-  const { csrfToken } = await csrfResponse.json();
+  const { csrfToken } = await apiFetch<{ csrfToken: string }>('/api/auth/csrf');
 
-  const response = await fetch('/api/auth/login', {
+  return apiFetch<LoginResponse>('/api/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-csrf-token': csrfToken,
-    },
+    headers: { 'x-csrf-token': csrfToken },
     body: JSON.stringify(payload),
+    // A failed login legitimately returns 401 (wrong credentials) — that
+    // must surface as a form error, not bounce the user back to /login.
+    skipAuthRedirect: true,
   });
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    throw new Error(body?.message ?? 'Login failed');
-  }
-
-  return response.json();
 }

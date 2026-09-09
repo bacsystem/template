@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApiError, apiFetch } from '@/shared/lib/http';
+import { apiFetch } from '@/shared/lib/http';
+import { handleApiError } from '@/shared/lib/api-error-response';
 import { isValidCsrfToken } from '@/shared/lib/csrf';
 import { AUTH_COOKIE } from '@/shared/lib/cookies';
 
@@ -8,7 +9,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Invalid CSRF token' }, { status: 403 });
   }
 
-  const { email, password } = await request.json();
+  let email: unknown;
+  let password: unknown;
+  try {
+    ({ email, password } = await request.json());
+  } catch {
+    return NextResponse.json({ message: 'Invalid request body' }, { status: 400 });
+  }
 
   try {
     const { token, user } = await apiFetch<{ token: string; user: unknown }>(
@@ -28,9 +35,6 @@ export async function POST(request: NextRequest) {
     });
     return response;
   } catch (error) {
-    if (error instanceof ApiError) {
-      return NextResponse.json({ message: error.message }, { status: error.status });
-    }
-    return NextResponse.json({ message: 'Unexpected error' }, { status: 500 });
+    return handleApiError(error);
   }
 }
