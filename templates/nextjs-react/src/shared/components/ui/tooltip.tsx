@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { cn } from '@/shared/lib/utils';
+import { cn, overlayAnimationClasses } from '@/shared/lib/utils';
 
 export const TooltipProvider = TooltipPrimitive.Provider;
 export const Tooltip = TooltipPrimitive.Root;
@@ -17,7 +17,8 @@ export const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-50 overflow-hidden rounded-md border border-border bg-card px-3 py-1.5 text-sm text-card-foreground shadow-md data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=delayed-open]:zoom-in-95',
+        'z-50 overflow-hidden rounded-md border border-border bg-card px-3 py-1.5 text-sm text-card-foreground shadow-md',
+        overlayAnimationClasses('delayed-open'),
         className
       )}
       {...props}

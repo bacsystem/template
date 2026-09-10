@@ -76,12 +76,13 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
   } as unknown as typeof ResizeObserver;
 }
 
-// jsdom lays out every element at 0x0. Radix's floating-ui-based positioning
-// (Select, DropdownMenu, Tooltip, ...) treats a zero-sized rect as "still
-// settling" and keeps re-scheduling its positioning frame, which is why those
-// components' tests were each taking 20-30s and reaching for their own
-// one-off `it(..., <bigNumber>)` timeout. Returning a stable, non-zero rect
-// for every element makes that positioning converge on the first pass.
+// jsdom lays out every element at 0x0 by default. This gives Radix's
+// floating-ui-based positioning (Select, DropdownMenu, Tooltip, ...) a
+// stable, non-zero rect to measure instead — a correct, worthwhile polyfill
+// on its own. It does NOT fix the 15-30s real wall-clock delay those
+// components' tests hit (verified: still present with this in place) — see
+// tests/radix-portal-test-timeout.ts for what that delay actually is and
+// isn't caused by.
 if (typeof Element !== 'undefined') {
   Element.prototype.getBoundingClientRect = () => ({
     width: 100,
@@ -96,13 +97,19 @@ if (typeof Element !== 'undefined') {
   });
 }
 
-// jsdom's requestAnimationFrame throttles to a real ~16ms per frame. Combined
-// with the settling loop above, that's still hundreds of real milliseconds to
-// seconds per open/close. Firing the callback on the next tick instead (still
-// async, so ordering/microtask semantics are preserved) collapses that to
-// effectively instant without changing what runs.
+// jsdom's requestAnimationFrame throttles to a real ~16ms per frame; firing
+// the callback on the next tick instead (still async, so ordering/microtask
+// semantics are preserved) is strictly faster and a correct polyfill on its
+// own. It does NOT fix the 15-30s real wall-clock delay those components'
+// tests hit (verified: instrumented this call during the delay and it was
+// never invoked — rafCount stayed 0) — see
+// tests/radix-portal-test-timeout.ts for what that delay actually is.
 if (typeof window !== 'undefined') {
   window.requestAnimationFrame = ((cb: FrameRequestCallback) =>
-    setTimeout(() => cb(Date.now()), 0) as unknown as number) as typeof window.requestAnimationFrame;
-  window.cancelAnimationFrame = ((id: number) => clearTimeout(id)) as typeof window.cancelAnimationFrame;
+    setTimeout(
+      () => cb(Date.now()),
+      0
+    ) as unknown as number) as typeof window.requestAnimationFrame;
+  window.cancelAnimationFrame = ((id: number) =>
+    clearTimeout(id)) as typeof window.cancelAnimationFrame;
 }
