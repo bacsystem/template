@@ -23,7 +23,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
         {children}
-        <Toaster richColors position="top-right" />
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            classNames: {
+              toast:
+                'bg-card text-card-foreground border border-border shadow-md',
+              success: 'bg-success text-success-foreground border-success',
+              error:
+                'bg-destructive text-destructive-foreground border-destructive',
+              warning: 'bg-warning text-warning-foreground border-warning',
+            },
+          }}
+        />
       </QueryClientProvider>
     </ThemeProvider>
   );

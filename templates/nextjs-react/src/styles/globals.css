@@ -10,6 +10,17 @@
   --color-input: #e5e7eb;
   --color-accent: #f3f4f6;
   --color-ring: var(--color-primary);
+  --color-border: var(--color-input);
+  --color-muted: var(--color-accent);
+  --color-muted-foreground: #71717a;
+  --color-card: #fafafa;
+  --color-card-foreground: var(--color-foreground);
+  --color-destructive: #b91c1c;
+  --color-destructive-foreground: #ffffff;
+  --color-success: #15803d;
+  --color-success-foreground: #ffffff;
+  --color-warning: #b45309;
+  --color-warning-foreground: #ffffff;
 }
 
 .dark {
@@ -17,6 +28,8 @@
   --color-foreground: #ededed;
   --color-input: #27272a;
   --color-accent: #27272a;
+  --color-muted-foreground: #a1a1aa;
+  --color-card: #18181b;
 }
 
 body {

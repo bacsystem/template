@@ -13,4 +13,15 @@ describe('DashboardLayout', () => {
     expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     expect(screen.getByText('page content')).toBeInTheDocument();
   });
+
+  it('renders notification and profile action buttons', () => {
+    render(
+      <DashboardLayout>
+        <p>page content</p>
+      </DashboardLayout>
+    );
+
+    expect(screen.getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Profile' })).toBeInTheDocument();
+  });
 });

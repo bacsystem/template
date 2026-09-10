@@ -7,10 +7,16 @@ export interface HeaderProps {
 
 export function Header({ title, actions }: HeaderProps) {
   return (
-    <header className="flex items-center justify-between border-b border-input px-6 py-4">
-      {title ? <h1 className="text-lg font-semibold">{title}</h1> : null}
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-input bg-background px-4 shadow-sm sm:px-6 lg:px-8">
+      <div className="min-w-0">
+        {title ? (
+          <h1 className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">
+            {title}
+          </h1>
+        ) : null}
+      </div>
       {actions ? (
-        <div className="flex items-center gap-2">{actions}</div>
+        <div className="flex shrink-0 items-center gap-3">{actions}</div>
       ) : null}
     </header>
   );

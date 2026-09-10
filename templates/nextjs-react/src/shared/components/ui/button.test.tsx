@@ -19,4 +19,12 @@ describe('Button', () => {
 
     expect(onClick).toHaveBeenCalledTimes(1);
   });
+
+  it('applies square dimensions for the icon size', () => {
+    render(<Button size="icon" aria-label="Icon action" />);
+
+    const button = screen.getByRole('button', { name: 'Icon action' });
+    expect(button).toHaveClass('h-10');
+    expect(button).toHaveClass('w-10');
+  });
 });
