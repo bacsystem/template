@@ -21,7 +21,6 @@ export default function DashboardPage() {
 
   return (
     <main className="flex flex-col gap-4 p-8">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
       <p>Total items: {data.totalItems}</p>
       <p>Last updated: {data.lastUpdated}</p>
     </main>
