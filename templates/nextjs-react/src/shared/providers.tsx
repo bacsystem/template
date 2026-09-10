@@ -27,9 +27,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
           position="top-right"
           toastOptions={{
             classNames: {
-              toast: 'bg-card text-card-foreground border border-border shadow-md',
+              toast:
+                'bg-card text-card-foreground border border-border shadow-md',
               success: 'bg-success text-success-foreground border-success',
-              error: 'bg-destructive text-destructive-foreground border-destructive',
+              error:
+                'bg-destructive text-destructive-foreground border-destructive',
               warning: 'bg-warning text-warning-foreground border-warning',
             },
           }}

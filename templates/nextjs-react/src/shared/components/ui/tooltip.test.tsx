@@ -7,14 +7,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './tooltip';
+import { RADIX_PORTAL_TEST_TIMEOUT_MS } from '../../../../tests/radix-portal-test-timeout';
 
 describe('Tooltip', () => {
-  // Radix's floating-ui positioning does real (slow) ancestor-style
-  // computation under jsdom, regularly taking >5s here even though the
-  // assertion is correct — raise this test's timeout so that doesn't
-  // register as a false failure.
-  const TOOLTIP_TEST_TIMEOUT_MS = 30000;
-
   it(
     'shows its content on hover',
     async () => {
@@ -31,6 +26,6 @@ describe('Tooltip', () => {
 
       expect(await screen.findByText('Helpful hint')).toBeInTheDocument();
     },
-    TOOLTIP_TEST_TIMEOUT_MS
+    RADIX_PORTAL_TEST_TIMEOUT_MS
   );
 });

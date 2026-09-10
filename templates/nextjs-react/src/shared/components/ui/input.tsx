@@ -11,7 +11,13 @@ const baseInputClasses =
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, icon, ...props }, ref) => {
     if (!icon) {
-      return <input ref={ref} className={cn(baseInputClasses, 'px-3 py-2', className)} {...props} />;
+      return (
+        <input
+          ref={ref}
+          className={cn(baseInputClasses, 'px-3 py-2', className)}
+          {...props}
+        />
+      );
     }
 
     return (
@@ -19,7 +25,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
           {icon}
         </span>
-        <input ref={ref} className={cn(baseInputClasses, 'py-2 pl-9 pr-3', className)} {...props} />
+        <input
+          ref={ref}
+          className={cn(baseInputClasses, 'py-2 pl-9 pr-3', className)}
+          {...props}
+        />
       </div>
     );
   }

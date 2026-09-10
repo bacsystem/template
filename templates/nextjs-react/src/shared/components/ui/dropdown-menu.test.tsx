@@ -7,12 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './dropdown-menu';
+import { RADIX_PORTAL_TEST_TIMEOUT_MS } from '../../../../tests/radix-portal-test-timeout';
 
 describe('DropdownMenu', () => {
-  // jsdom's nwsapi selector engine is pathologically slow matching the
-  // long :not() chains Radix's focus-scope/aria-hide use once the portal
-  // opens, so a real open+select round trip can take ~20s here even
-  // though nothing is hung — raise this test's timeout accordingly.
   it(
     'opens and calls onSelect when an item is chosen',
     async () => {
@@ -31,6 +28,6 @@ describe('DropdownMenu', () => {
 
       expect(onSelect).toHaveBeenCalledTimes(1);
     },
-    30000
+    RADIX_PORTAL_TEST_TIMEOUT_MS
   );
 });

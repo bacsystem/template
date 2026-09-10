@@ -1,13 +1,16 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './select';
+import { RADIX_PORTAL_TEST_TIMEOUT_MS } from '../../../../tests/radix-portal-test-timeout';
 
 describe('Select', () => {
-  // Radix's popper-based positioning (SelectContent's default `position="popper"`)
-  // settles synchronously and correctly, but takes tens of seconds under jsdom's
-  // layout stubs — well past vitest's 5s default. Bump this test's timeout rather
-  // than the whole suite's.
   it(
     'opens and selects an option',
     async () => {
@@ -29,6 +32,6 @@ describe('Select', () => {
 
       expect(onValueChange).toHaveBeenCalledWith('b');
     },
-    60000
+    RADIX_PORTAL_TEST_TIMEOUT_MS
   );
 });

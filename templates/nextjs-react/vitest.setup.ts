@@ -75,3 +75,34 @@ if (typeof window !== 'undefined' && !window.ResizeObserver) {
     disconnect() {}
   } as unknown as typeof ResizeObserver;
 }
+
+// jsdom lays out every element at 0x0. Radix's floating-ui-based positioning
+// (Select, DropdownMenu, Tooltip, ...) treats a zero-sized rect as "still
+// settling" and keeps re-scheduling its positioning frame, which is why those
+// components' tests were each taking 20-30s and reaching for their own
+// one-off `it(..., <bigNumber>)` timeout. Returning a stable, non-zero rect
+// for every element makes that positioning converge on the first pass.
+if (typeof Element !== 'undefined') {
+  Element.prototype.getBoundingClientRect = () => ({
+    width: 100,
+    height: 20,
+    top: 0,
+    left: 0,
+    bottom: 20,
+    right: 100,
+    x: 0,
+    y: 0,
+    toJSON() {},
+  });
+}
+
+// jsdom's requestAnimationFrame throttles to a real ~16ms per frame. Combined
+// with the settling loop above, that's still hundreds of real milliseconds to
+// seconds per open/close. Firing the callback on the next tick instead (still
+// async, so ordering/microtask semantics are preserved) collapses that to
+// effectively instant without changing what runs.
+if (typeof window !== 'undefined') {
+  window.requestAnimationFrame = ((cb: FrameRequestCallback) =>
+    setTimeout(() => cb(Date.now()), 0) as unknown as number) as typeof window.requestAnimationFrame;
+  window.cancelAnimationFrame = ((id: number) => clearTimeout(id)) as typeof window.cancelAnimationFrame;
+}

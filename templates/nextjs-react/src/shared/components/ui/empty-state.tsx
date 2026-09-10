@@ -10,12 +10,25 @@ export interface EmptyStateProps {
   className?: string;
 }
 
-export function EmptyState({ icon, title, description, action, className }: EmptyStateProps) {
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+  className,
+}: EmptyStateProps) {
   return (
-    <div className={cn('flex flex-col items-center gap-2 p-8 text-center', className)}>
+    <div
+      className={cn(
+        'flex flex-col items-center gap-2 p-8 text-center',
+        className
+      )}
+    >
       <div className="text-muted-foreground">{icon}</div>
       <p className="text-base font-semibold tracking-tight">{title}</p>
-      {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+      {description ? (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      ) : null}
       {action ? (
         <Button size="sm" onClick={action.onClick} className="mt-2">
           {action.label}
