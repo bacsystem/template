@@ -3,20 +3,39 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { ThemeProvider } from 'next-themes';
 import { ThemeToggle } from './theme-toggle';
+import { RADIX_PORTAL_TEST_TIMEOUT_MS } from '../../../tests/radix-portal-test-timeout';
 
 describe('ThemeToggle', () => {
-  it('toggles the theme when clicked', async () => {
-    render(
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-        <ThemeToggle />
-      </ThemeProvider>
-    );
+  it(
+    'lists Light, Dark, and System options and switches to Dark when selected',
+    async () => {
+      render(
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+          <ThemeToggle />
+        </ThemeProvider>
+      );
 
-    const button = await screen.findByRole('button', { name: 'Toggle theme' });
-    expect(button).not.toBeDisabled();
+      const trigger = await screen.findByRole('button', {
+        name: 'Toggle theme',
+      });
+      await userEvent.click(trigger);
 
-    await userEvent.click(button);
+      expect(
+        screen.getByRole('menuitemradio', { name: /Light/ })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitemradio', { name: /Dark/ })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('menuitemradio', { name: /System/ })
+      ).toBeInTheDocument();
 
-    expect(document.documentElement.classList.contains('dark')).toBe(true);
-  });
+      await userEvent.click(
+        screen.getByRole('menuitemradio', { name: /Dark/ })
+      );
+
+      expect(document.documentElement.classList.contains('dark')).toBe(true);
+    },
+    RADIX_PORTAL_TEST_TIMEOUT_MS
+  );
 });
