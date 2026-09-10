@@ -9,13 +9,32 @@ describe('DesignSystemPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Design System' })
     ).toBeInTheDocument();
-    expect(screen.getByText('Buttons')).toBeInTheDocument();
-    expect(screen.getByText('Badges')).toBeInTheDocument();
-    expect(screen.getByText('Form controls')).toBeInTheDocument();
-    expect(screen.getByText('Dialog')).toBeInTheDocument();
-    expect(screen.getByText('Tabs')).toBeInTheDocument();
-    expect(screen.getByText('Avatar')).toBeInTheDocument();
-    expect(screen.getByText('Skeleton')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Buttons' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Badges' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Form controls' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Dialog' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tabs' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Avatar' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Skeleton' })
+    ).toBeInTheDocument();
     expect(screen.getByText('No messages')).toBeInTheDocument();
+  });
+
+  it('renders an in-page nav link for every section', () => {
+    render(<DesignSystemPage />);
+
+    expect(screen.getByRole('link', { name: 'Buttons' })).toHaveAttribute(
+      'href',
+      '#buttons'
+    );
+    expect(screen.getByRole('link', { name: 'Empty state' })).toHaveAttribute(
+      'href',
+      '#empty-state'
+    );
   });
 });
